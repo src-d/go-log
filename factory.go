@@ -119,13 +119,13 @@ func (f *LoggerFactory) setDefaultFormat() error {
 		f.Format = DefaultFormat
 	}
 
-	if !f.ForceFormat && isTermianl() {
-		f.Format = "json"
-	}
-
 	f.Format = strings.ToLower(f.Format)
 	if validFormats[f.Format] {
 		return nil
+	}
+
+	if !f.ForceFormat && isTermianl() {
+		f.Format = "json"
 	}
 
 	return fmt.Errorf(
