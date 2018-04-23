@@ -53,19 +53,9 @@ func TestLoggerFactoryNew_Fields(t *testing.T) {
 func TestLoggerFactoryNew_Error(t *testing.T) {
 	require := require.New(t)
 
-	// missing level
-	f := &LoggerFactory{Format: "text"}
-	_, err := f.New()
-	require.Error(err)
-
 	// invalid level
-	f = &LoggerFactory{Level: "text"}
-	_, err = f.New()
-	require.Error(err)
-
-	// missing format
-	f = &LoggerFactory{Level: "info"}
-	_, err = f.New()
+	f := &LoggerFactory{Level: "text"}
+	_, err := f.New()
 	require.Error(err)
 
 	// invalid format

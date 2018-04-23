@@ -3,34 +3,26 @@ package log
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
 )
 
-// Level represents the logging level.
-type Level int32
-
 const (
-	// Info level. General operational entries about what's going on inside the
-	// application.
-	Info = Level(logrus.WarnLevel)
-	// Debug level. Usually only enabled when debugging. Very verbose logging.
-	Debug = Level(logrus.DebugLevel)
-	// Warning level. Non-critical entries that deserve eyes.
-	Warning = Level(logrus.WarnLevel)
-	// Error level. Used for errors that should definitely be noted.
-	Error = Level(logrus.ErrorLevel)
+	// DefaultLevel is the level used by LoggerFactory when Level is omitted.
+	DefaultLevel = "info"
+	// DefaultFormat is the format used by LoggerFactory when Format is omitted.
+	DefaultFormat = "text"
 )
 
-// Format represents the format of logs to be use.
-type Format int32
-
-const (
-	// Text is the default human readable log format.
-	Text Format = iota
-	// JSON format, mainly for machine to machine comunication.
-	JSON
+var (
+	validLevels = map[string]bool{
+		"info": true, "debug": true, "warning": true, "error": true,
+	}
+	validFormats = map[string]bool{
+		"text": true, "json": true,
+	}
 )
 
 // LoggerFactory is a logger factory used to instanciate new Loggers, from
@@ -70,7 +62,18 @@ func (f LoggerFactory) ApplyToLogrus() error {
 }
 
 func (f LoggerFactory) setLevel(l *logrus.Logger) error {
-	level, err := logrus.ParseLevel(f.Level)
+	lvl := DefaultLevel
+	if f.Level != "" {
+		lvl = strings.ToLower(f.Level)
+	}
+
+	if !validLevels[lvl] {
+		return fmt.Errorf(
+			"invalid level %s, valid levels are: %v", lvl, getKeysFromMap(validLevels),
+		)
+	}
+
+	level, err := logrus.ParseLevel(lvl)
 	if err != nil {
 		return err
 	}
@@ -80,7 +83,18 @@ func (f LoggerFactory) setLevel(l *logrus.Logger) error {
 }
 
 func (f LoggerFactory) setFormat(l *logrus.Logger) error {
-	switch f.Format {
+	format := DefaultFormat
+	if f.Format != "" {
+		format = strings.ToLower(f.Format)
+	}
+
+	if !validFormats[format] {
+		return fmt.Errorf(
+			"invalid format %s, valid formats are: %v", format, getKeysFromMap(validFormats),
+		)
+	}
+
+	switch format {
 	case "text":
 		f := new(prefixed.TextFormatter)
 		f.ForceColors = true
@@ -88,8 +102,6 @@ func (f LoggerFactory) setFormat(l *logrus.Logger) error {
 		l.Formatter = f
 	case "json":
 		l.Formatter = new(logrus.JSONFormatter)
-	default:
-		return fmt.Errorf("unknown logger format: %q", f.Format)
 	}
 
 	return nil
@@ -105,4 +117,13 @@ func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {
 
 	e := l.WithFields(fields)
 	return &logger{*e}, nil
+}
+
+func getKeysFromMap(m map[string]bool) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	return keys
 }
