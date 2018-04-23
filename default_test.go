@@ -6,7 +6,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
-	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 )
 
 func TestNew(t *testing.T) {
@@ -19,6 +18,5 @@ func TestNew(t *testing.T) {
 
 	logger, ok := l.(*logger)
 	require.True(ok)
-	require.IsType(&prefixed.TextFormatter{}, logger.Entry.Logger.Formatter)
 	require.Equal(logrus.DebugLevel, logger.Entry.Logger.Level)
 }

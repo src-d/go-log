@@ -3,10 +3,12 @@ package log
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
@@ -28,16 +30,19 @@ var (
 // LoggerFactory is a logger factory used to instanciate new Loggers, from
 // string configuration, mainly coming from console flags.
 type LoggerFactory struct {
-	// Leves as string, values are "info", "debug", "warning" or "error".
+	// Level as string, values are "info", "debug", "warning" or "error".
 	Level string
 	// Format as string, values are "text" or "json", by default "text" is used.
+	// when a terminal is not detected "json" is used instead.
 	Format string
 	// Fields in JSON format to be used by configured in the new Logger.
 	Fields string
+	// ForceFormat if true the fact of being in a terminal or not is ignored.
+	ForceFormat bool
 }
 
 // New returns a new logger based on the LoggerFactory values.
-func (f LoggerFactory) New() (Logger, error) {
+func (f *LoggerFactory) New() (Logger, error) {
 	l := logrus.New()
 	if err := f.setLevel(l); err != nil {
 		return nil, err
@@ -53,7 +58,7 @@ func (f LoggerFactory) New() (Logger, error) {
 // ApplyToLogrus configures the standard logrus Logger with the LoggerFactory
 // values. Useful to propagate the configuration to third-party libraries using
 // logrus.
-func (f LoggerFactory) ApplyToLogrus() error {
+func (f *LoggerFactory) ApplyToLogrus() error {
 	if err := f.setLevel(logrus.StandardLogger()); err != nil {
 		return err
 	}
@@ -61,19 +66,12 @@ func (f LoggerFactory) ApplyToLogrus() error {
 	return f.setFormat(logrus.StandardLogger())
 }
 
-func (f LoggerFactory) setLevel(l *logrus.Logger) error {
-	lvl := DefaultLevel
-	if f.Level != "" {
-		lvl = strings.ToLower(f.Level)
+func (f *LoggerFactory) setLevel(l *logrus.Logger) error {
+	if err := f.setDefaultLevel(); err != nil {
+		return err
 	}
 
-	if !validLevels[lvl] {
-		return fmt.Errorf(
-			"invalid level %s, valid levels are: %v", lvl, getKeysFromMap(validLevels),
-		)
-	}
-
-	level, err := logrus.ParseLevel(lvl)
+	level, err := logrus.ParseLevel(f.Level)
 	if err != nil {
 		return err
 	}
@@ -82,19 +80,28 @@ func (f LoggerFactory) setLevel(l *logrus.Logger) error {
 	return nil
 }
 
-func (f LoggerFactory) setFormat(l *logrus.Logger) error {
-	format := DefaultFormat
-	if f.Format != "" {
-		format = strings.ToLower(f.Format)
+func (f *LoggerFactory) setDefaultLevel() error {
+	if f.Level == "" {
+		f.Level = DefaultLevel
 	}
 
-	if !validFormats[format] {
-		return fmt.Errorf(
-			"invalid format %s, valid formats are: %v", format, getKeysFromMap(validFormats),
-		)
+	f.Level = strings.ToLower(f.Level)
+	if validLevels[f.Level] {
+		return nil
 	}
 
-	switch format {
+	return fmt.Errorf(
+		"invalid level %s, valid levels are: %v",
+		f.Level, getKeysFromMap(validLevels),
+	)
+}
+
+func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
+	if err := f.setDefaultFormat(); err != nil {
+		return err
+	}
+
+	switch f.Format {
 	case "text":
 		f := new(prefixed.TextFormatter)
 		f.ForceColors = true
@@ -105,6 +112,26 @@ func (f LoggerFactory) setFormat(l *logrus.Logger) error {
 	}
 
 	return nil
+}
+
+func (f *LoggerFactory) setDefaultFormat() error {
+	if f.Format == "" {
+		f.Format = DefaultFormat
+	}
+
+	if !f.ForceFormat && isTermianl() {
+		f.Format = "json"
+	}
+
+	f.Format = strings.ToLower(f.Format)
+	if validFormats[f.Format] {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"invalid format %s, valid formats are: %v",
+		f.Format, getKeysFromMap(validFormats),
+	)
 }
 
 func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {
@@ -126,4 +153,8 @@ func getKeysFromMap(m map[string]bool) []string {
 	}
 
 	return keys
+}
+
+func isTermianl() bool {
+	return terminal.IsTerminal(int(os.Stdout.Fd()))
 }
