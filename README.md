@@ -14,6 +14,32 @@ The recommended way to install *go-log* is:
 go get -u gopkg.in/src-d/go-log.v0/...
 ```
 
+Usage
+-----
+
+### Logger instantiation
+
+A basic example that instantiates a default `Logger`, by default the logger
+will be configured a Info level and text format, if a TTY doesn't using the
+default format will be JSON.
+
+```go
+logger, _ := log.New()
+logger.Infof("The answer to life, the universe and everything is %d", 42)
+// INFO The answer to life, the universe and everything is 42
+```
+
+Also a new `Logger` can be created from other `Logger` in order to have
+contextual, information.
+
+```go
+logger, _ := log.New()
+
+bookLogger := logger.New(log.Field{"book": "Hitchhiker's Guide To The Galaxy"})
+bookLogger.Infof("The answer to life, the universe and everything is %d", 42)
+// INFO The answer to life, the universe and everything is 42 book=Hitchhiker's Guide To The Galaxy
+```
+
 License
 -------
 Apache License Version 2.0, see [LICENSE](LICENSE)
