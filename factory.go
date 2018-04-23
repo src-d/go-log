@@ -34,7 +34,7 @@ const (
 )
 
 // LoggerFactory is a logger factory used to instanciate new Loggers, from
-// string configuration, mainly comming from console flags.
+// string configuration, mainly coming from console flags.
 type LoggerFactory struct {
 	// Leves as string, values are "info", "debug", "warning" or "error".
 	Level string
