@@ -124,7 +124,7 @@ func (f *LoggerFactory) setDefaultFormat() error {
 		return nil
 	}
 
-	if !f.ForceFormat && isTermianl() {
+	if !f.ForceFormat && isTerminal() {
 		f.Format = "json"
 	}
 
@@ -155,6 +155,6 @@ func getKeysFromMap(m map[string]bool) []string {
 	return keys
 }
 
-func isTermianl() bool {
+func isTerminal() bool {
 	return terminal.IsTerminal(int(os.Stdout.Fd()))
 }
