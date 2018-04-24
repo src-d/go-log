@@ -28,11 +28,24 @@ of available variables is:
 Usage
 -----
 
+### Basic usage
+
+The most basic form of logging is made using the `Infof`, `Debugf`, `Warningf`
+and `Error` functions at the top level of the packages.
+
+```go
+log.Infof("The answer to life, the universe and everything is %d", 42)
+// INFO The answer to life, the universe and everything is 42
+```
+
+These functions use the `DefaultLogger` a logger lazy instanced when this method
+are called. This logger reads the configuration from the environment variables.
+
 ### Logger instantiation
 
-A basic example that instantiates a default `Logger`, by default the logger
-will be configured a Info level and text format, if a TTY doesn't using the
-default format will be JSON.
+If you prefer to keep a reference to the `Logger`, in your packages or structs
+to have more control over it (for example for tests). A default `Logger`, can
+be instantiated using the `New` method.
 
 ```go
 logger, _ := log.New()
@@ -40,8 +53,8 @@ logger.Infof("The answer to life, the universe and everything is %d", 42)
 // INFO The answer to life, the universe and everything is 42
 ```
 
-Also a new `Logger` can be created from other `Logger` in order to have
-contextual, information.
+Also, a new `Logger` can be created from other `Logger` in order to have
+contextual information, using the method `Logger.New`
 
 ```go
 logger, _ := log.New()
@@ -54,7 +67,6 @@ bookLogger.Infof("The answer to life, the universe and everything is %d", 42)
 ### Logging errors
 
 In `go-log` the errors are logged using the function `Logger.Error`:
-
 
 ```go
 logger, _ := log.New()
