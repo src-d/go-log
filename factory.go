@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
 	"golang.org/x/crypto/ssh/terminal"
@@ -16,6 +18,9 @@ const (
 	DefaultLevel = "info"
 	// DefaultFormat is the format used by LoggerFactory when Format is omitted.
 	DefaultFormat = "text"
+	// DefaultTimeFormat is a handy timestamp (Jan _2 15:04:05.000000)
+	// with microsecond precision
+	DefaultTimeFormat = time.StampMicro
 )
 
 var (
@@ -35,6 +40,9 @@ type LoggerFactory struct {
 	// Format as string, values are "text" or "json", by default "text" is used.
 	// when a terminal is not detected "json" is used instead.
 	Format string
+	// TimeFormat is used for marshaling timestamps,
+	// by default:"Jan _2 15:04:05.000000"
+	TimeFormat string
 	// Fields in JSON format to be used by configured in the new Logger.
 	Fields string
 	// ForceFormat if true the fact of being in a terminal or not is ignored.
@@ -44,6 +52,8 @@ type LoggerFactory struct {
 // New returns a new logger based on the LoggerFactory values.
 func (f *LoggerFactory) New() (Logger, error) {
 	l := logrus.New()
+	f.setHook(l)
+
 	if err := f.setLevel(l); err != nil {
 		return nil, err
 	}
@@ -59,11 +69,14 @@ func (f *LoggerFactory) New() (Logger, error) {
 // values. Useful to propagate the configuration to third-party libraries using
 // logrus.
 func (f *LoggerFactory) ApplyToLogrus() error {
-	if err := f.setLevel(logrus.StandardLogger()); err != nil {
+	std := logrus.StandardLogger()
+	f.setHook(std)
+
+	if err := f.setLevel(std); err != nil {
 		return err
 	}
 
-	return f.setFormat(logrus.StandardLogger())
+	return f.setFormat(std)
 }
 
 func (f *LoggerFactory) setLevel(l *logrus.Logger) error {
@@ -103,12 +116,15 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 
 	switch f.Format {
 	case "text":
-		f := new(prefixed.TextFormatter)
-		f.ForceColors = true
-		f.FullTimestamp = true
-		l.Formatter = f
+		fmt := new(prefixed.TextFormatter)
+		fmt.ForceColors = true
+		fmt.FullTimestamp = true
+		fmt.TimestampFormat = f.TimeFormat
+		l.Formatter = fmt
 	case "json":
-		l.Formatter = new(logrus.JSONFormatter)
+		fmt := new(logrus.JSONFormatter)
+		fmt.TimestampFormat = f.TimeFormat
+		l.Formatter = fmt
 	}
 
 	return nil
@@ -117,6 +133,10 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 func (f *LoggerFactory) setDefaultFormat() error {
 	if f.Format == "" {
 		f.Format = DefaultFormat
+	}
+
+	if f.TimeFormat == "" {
+		f.TimeFormat = DefaultTimeFormat
 	}
 
 	f.Format = strings.ToLower(f.Format)
@@ -131,6 +151,17 @@ func (f *LoggerFactory) setDefaultFormat() error {
 	return fmt.Errorf(
 		"invalid format %s, valid formats are: %v",
 		f.Format, getKeysFromMap(validFormats),
+	)
+}
+
+func (f *LoggerFactory) setHook(l *logrus.Logger) {
+	l.AddHook(filename.NewHook(
+		logrus.DebugLevel,
+		logrus.InfoLevel,
+		logrus.WarnLevel,
+		logrus.ErrorLevel,
+		logrus.FatalLevel,
+		logrus.PanicLevel),
 	)
 }
 
