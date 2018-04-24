@@ -14,6 +14,17 @@ The recommended way to install *go-log* is:
 go get -u gopkg.in/src-d/go-log.v0/...
 ```
 
+Configuration
+-------------
+
+The configuration should be done always using environment variables. The list
+of available variables is:
+
+- `LOG_LEVEL`: Reporting level, values are "info", "debug", "warning" or "error".
+- `LOG_FORMAT`: Format of the log lines, values are "text" or "json", by default "text" is used. unless a terminal can't be detected, in this case, "json" is used instead.
+- `LOG_FIELDS`: Fields in JSON format to be included in all the loggers.
+- `LOG_FORCE_FORMAT`: If true the fact of being in a terminal or not is ignored.
+
 Usage
 -----
 
@@ -38,6 +49,20 @@ logger, _ := log.New()
 bookLogger := logger.New(log.Field{"book": "Hitchhiker's Guide To The Galaxy"})
 bookLogger.Infof("The answer to life, the universe and everything is %d", 42)
 // INFO The answer to life, the universe and everything is 42 book=Hitchhiker's Guide To The Galaxy
+```
+
+### Logging errors
+
+In `go-log` the errors are logged using the function `Logger.Error`:
+
+
+```go
+logger, _ := log.New()
+
+_, err := http.Get("https://en.wikipedia.org/wiki/Douglas_Adams")
+if err != nil {
+    logger.Error(err, "unable to retrieve page")
+}
 ```
 
 License
