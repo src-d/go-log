@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
@@ -18,9 +17,6 @@ const (
 	DefaultLevel = "info"
 	// DefaultFormat is the format used by LoggerFactory when Format is omitted.
 	DefaultFormat = "text"
-	// DefaultTimeFormat is a handy timestamp (Jan _2 15:04:05.000000)
-	// with microsecond precision
-	DefaultTimeFormat = time.StampMicro
 )
 
 var (
@@ -40,8 +36,7 @@ type LoggerFactory struct {
 	// Format as string, values are "text" or "json", by default "text" is used.
 	// when a terminal is not detected "json" is used instead.
 	Format string
-	// TimeFormat is used for marshaling timestamps,
-	// by default:"Jan _2 15:04:05.000000"
+	// TimeFormat is used for marshaling timestamps
 	TimeFormat string
 	// Fields in JSON format to be used by configured in the new Logger.
 	Fields string
@@ -135,10 +130,6 @@ func (f *LoggerFactory) setDefaultFormat() error {
 		f.Format = DefaultFormat
 	}
 
-	if f.TimeFormat == "" {
-		f.TimeFormat = DefaultTimeFormat
-	}
-
 	f.Format = strings.ToLower(f.Format)
 	if validFormats[f.Format] {
 		return nil
@@ -155,14 +146,7 @@ func (f *LoggerFactory) setDefaultFormat() error {
 }
 
 func (f *LoggerFactory) setHook(l *logrus.Logger) {
-	l.AddHook(filename.NewHook(
-		logrus.DebugLevel,
-		logrus.InfoLevel,
-		logrus.WarnLevel,
-		logrus.ErrorLevel,
-		logrus.FatalLevel,
-		logrus.PanicLevel),
-	)
+	l.AddHook(filename.NewHook(logrus.DebugLevel))
 }
 
 func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {
