@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
@@ -106,9 +107,12 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 		f := new(prefixed.TextFormatter)
 		f.ForceColors = true
 		f.FullTimestamp = true
+		f.TimestampFormat = time.RFC3339Nano
 		l.Formatter = f
 	case "json":
-		l.Formatter = new(logrus.JSONFormatter)
+		f := new(logrus.JSONFormatter)
+		f.TimestampFormat = time.RFC3339Nano
+		l.Formatter = f
 	}
 
 	return nil
