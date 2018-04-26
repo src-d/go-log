@@ -46,9 +46,9 @@ func Warningf(format string, args ...interface{}) {
 
 }
 
-// Error logs an error with a message at level Error.
-func Error(err error, format string, args ...interface{}) {
-	getLogger().Error(err, format, args...)
+// Errorf logs an error with a message at level Error.
+func Errorf(err error, format string, args ...interface{}) {
+	getLogger().Errorf(err, format, args...)
 }
 
 func getLogger() Logger {
