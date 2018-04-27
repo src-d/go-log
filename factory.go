@@ -7,24 +7,39 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
+	// DebugLevel stands for debug logging level.
+	DebugLevel = "debug"
+	// InfoLevel stands for info logging level (default).
+	InfoLevel = "info"
+	// WarningLevel stands for warning logging level.
+	WarningLevel = "warning"
+	// ErrorLevel stands for error logging level.
+	ErrorLevel = "error"
+
+	// TextFormat stands for text logging format.
+	TextFormat = "text"
+	// JSONFormat stands for json logging format.
+	JSONFormat = "json"
+
 	// DefaultLevel is the level used by LoggerFactory when Level is omitted.
-	DefaultLevel = "info"
+	DefaultLevel = InfoLevel
 	// DefaultFormat is the format used by LoggerFactory when Format is omitted.
-	DefaultFormat = "text"
+	DefaultFormat = TextFormat
 )
 
 var (
 	validLevels = map[string]bool{
-		"info": true, "debug": true, "warning": true, "error": true,
+		InfoLevel: true, DebugLevel: true, WarningLevel: true, ErrorLevel: true,
 	}
 	validFormats = map[string]bool{
-		"text": true, "json": true,
+		TextFormat: true, JSONFormat: true,
 	}
 )
 
@@ -45,9 +60,12 @@ type LoggerFactory struct {
 // New returns a new logger based on the LoggerFactory values.
 func (f *LoggerFactory) New() (Logger, error) {
 	l := logrus.New()
+
 	if err := f.setLevel(l); err != nil {
 		return nil, err
 	}
+
+	f.setHook(l)
 
 	if err := f.setFormat(l); err != nil {
 		return nil, err
@@ -60,11 +78,13 @@ func (f *LoggerFactory) New() (Logger, error) {
 // values. Useful to propagate the configuration to third-party libraries using
 // logrus.
 func (f *LoggerFactory) ApplyToLogrus() error {
-	if err := f.setLevel(logrus.StandardLogger()); err != nil {
+	std := logrus.StandardLogger()
+	if err := f.setLevel(std); err != nil {
 		return err
 	}
+	f.setHook(std)
 
-	return f.setFormat(logrus.StandardLogger())
+	return f.setFormat(std)
 }
 
 func (f *LoggerFactory) setLevel(l *logrus.Logger) error {
@@ -129,13 +149,25 @@ func (f *LoggerFactory) setDefaultFormat() error {
 	}
 
 	if !f.ForceFormat && isTerminal() {
-		f.Format = "json"
+		f.Format = JSONFormat
 	}
 
 	return fmt.Errorf(
 		"invalid format %s, valid formats are: %v",
 		f.Format, getKeysFromMap(validFormats),
 	)
+}
+
+func (f *LoggerFactory) setHook(l *logrus.Logger) {
+	if f.Level == DebugLevel {
+		l.AddHook(filename.NewHook(
+			logrus.DebugLevel,
+			logrus.InfoLevel,
+			logrus.WarnLevel,
+			logrus.ErrorLevel,
+			logrus.PanicLevel),
+		)
+	}
 }
 
 func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {

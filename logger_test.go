@@ -45,5 +45,6 @@ func TestLogger_Errorf(t *testing.T) {
 	logger.Logger.Out = buf
 
 	l.Errorf(fmt.Errorf("foo"), "qux %d", 42)
-	require.True(strings.HasSuffix(buf.String(), "error=foo\n"))
+	require.True(strings.Contains(buf.String(), "error=foo"))
+	require.True(strings.Contains(buf.String(), "msg=\"qux 42\""))
 }
