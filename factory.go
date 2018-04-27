@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
@@ -122,14 +123,16 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 	}
 
 	switch f.Format {
-	case TextFormat:
-		fmt := new(prefixed.TextFormatter)
-		fmt.ForceColors = true
-		fmt.FullTimestamp = true
-		l.Formatter = fmt
-	case JSONFormat:
-		fmt := new(logrus.JSONFormatter)
-		l.Formatter = fmt
+	case "text":
+		f := new(prefixed.TextFormatter)
+		f.ForceColors = true
+		f.FullTimestamp = true
+		f.TimestampFormat = time.RFC3339Nano
+		l.Formatter = f
+	case "json":
+		f := new(logrus.JSONFormatter)
+		f.TimestampFormat = time.RFC3339Nano
+		l.Formatter = f
 	}
 
 	return nil

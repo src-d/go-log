@@ -31,7 +31,7 @@ func TestLoggerNew(t *testing.T) {
 	}, l2.Entry.Data)
 }
 
-func TestLogger_Error(t *testing.T) {
+func TestLogger_Errorf(t *testing.T) {
 	require := require.New(t)
 
 	f := &LoggerFactory{Format: "text", Level: "debug"}
@@ -44,7 +44,7 @@ func TestLogger_Error(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	logger.Logger.Out = buf
 
-	l.Error(fmt.Errorf("foo"), "qux %d", 42)
+	l.Errorf(fmt.Errorf("foo"), "qux %d", 42)
 	require.True(strings.Contains(buf.String(), "error=foo"))
 	require.True(strings.Contains(buf.String(), "msg=\"qux 42\""))
 }

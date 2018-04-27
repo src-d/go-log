@@ -58,14 +58,14 @@ func TestWarningf(t *testing.T) {
 	Warningf("foo")
 	require.Equal(m.calledMethods["Warningf"], "foo")
 }
-func TestError(t *testing.T) {
+func TestErrorf(t *testing.T) {
 	require := require.New(t)
 
 	m := NewMockLogger()
 	DefaultLogger = m
 
-	Error(fmt.Errorf("foo"), "bar")
-	require.Equal(m.calledMethods["Error"], "bar")
+	Errorf(fmt.Errorf("foo"), "bar")
+	require.Equal(m.calledMethods["Errorf"], "bar")
 }
 
 type MockLogger struct {
@@ -98,7 +98,7 @@ func (l *MockLogger) Warningf(format string, args ...interface{}) {
 
 }
 
-func (l *MockLogger) Error(err error, format string, args ...interface{}) {
-	l.calledMethods["Error"] = format
+func (l *MockLogger) Errorf(err error, format string, args ...interface{}) {
+	l.calledMethods["Errorf"] = format
 
 }

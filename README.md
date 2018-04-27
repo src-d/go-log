@@ -31,7 +31,7 @@ Usage
 ### Basic usage
 
 The most basic form of logging is made using the `Infof`, `Debugf`, `Warningf`
-and `Error` functions at the top level of the packages.
+and `Errorf` functions at the top level of the packages.
 
 ```go
 log.Infof("The answer to life, the universe and everything is %d", 42)
@@ -66,14 +66,14 @@ bookLogger.Infof("The answer to life, the universe and everything is %d", 42)
 
 ### Logging errors
 
-In `go-log` the errors are logged using the function `Logger.Error`:
+In `go-log` the errors are logged using the function `Logger.Errorf`:
 
 ```go
 logger, _ := log.New()
 
 _, err := http.Get("https://en.wikipedia.org/wiki/Douglas_Adams")
 if err != nil {
-    logger.Error(err, "unable to retrieve page")
+    logger.Errorf(err, "unable to retrieve page")
 }
 ```
 
