@@ -11,7 +11,7 @@ import (
 func TestLoggerFactoryNew_TextWithForce(t *testing.T) {
 	require := require.New(t)
 
-	f := &LoggerFactory{Format: "text", ForceFormat: true}
+	f := &LoggerFactory{Format: TextFormat, ForceFormat: true}
 	l, err := f.New()
 	require.NoError(err)
 
@@ -23,7 +23,7 @@ func TestLoggerFactoryNew_TextWithForce(t *testing.T) {
 func TestLoggerFactoryNew_JSON(t *testing.T) {
 	require := require.New(t)
 
-	f := &LoggerFactory{Format: "json", Level: "info"}
+	f := &LoggerFactory{Format: JSONFormat, Level: InfoLevel}
 	l, err := f.New()
 	require.NoError(err)
 
@@ -37,7 +37,7 @@ func TestLoggerFactoryNew_Fields(t *testing.T) {
 	require := require.New(t)
 
 	js := `{"foo":"bar"}`
-	f := &LoggerFactory{Format: "text", Level: "debug", Fields: js}
+	f := &LoggerFactory{Format: TextFormat, Level: DebugLevel, Fields: js}
 	l, err := f.New()
 	require.NoError(err)
 
@@ -57,12 +57,12 @@ func TestLoggerFactoryNew_Error(t *testing.T) {
 	require.Error(err)
 
 	// invalid format
-	f = &LoggerFactory{Level: "info", Format: "qux"}
+	f = &LoggerFactory{Level: InfoLevel, Format: "qux"}
 	_, err = f.New()
 	require.Error(err)
 
 	// invalid json
-	f = &LoggerFactory{Level: "info", Format: "text", Fields: "qux"}
+	f = &LoggerFactory{Level: InfoLevel, Format: TextFormat, Fields: "qux"}
 	_, err = f.New()
 	require.Error(err)
 }
@@ -70,7 +70,7 @@ func TestLoggerFactoryNew_Error(t *testing.T) {
 func TestLoggerFactoryApply(t *testing.T) {
 	require := require.New(t)
 
-	f := &LoggerFactory{Format: "text", ForceFormat: true, Level: "debug"}
+	f := &LoggerFactory{Format: TextFormat, ForceFormat: true, Level: DebugLevel}
 	err := f.ApplyToLogrus()
 	require.NoError(err)
 

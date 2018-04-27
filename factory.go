@@ -13,18 +13,32 @@ import (
 )
 
 const (
+	// DebugLevel stands for debug logging level.
+	DebugLevel = "debug"
+	// InfoLevel stands for info logging level (default).
+	InfoLevel = "info"
+	// WarningLevel stands for warning logging level.
+	WarningLevel = "warning"
+	// ErrorLevel stands for error logging level.
+	ErrorLevel = "error"
+
+	// TextFormat stands for text logging format.
+	TextFormat = "text"
+	// JSONFormat stands for json logging format.
+	JSONFormat = "json"
+
 	// DefaultLevel is the level used by LoggerFactory when Level is omitted.
-	DefaultLevel = "info"
+	DefaultLevel = InfoLevel
 	// DefaultFormat is the format used by LoggerFactory when Format is omitted.
-	DefaultFormat = "text"
+	DefaultFormat = TextFormat
 )
 
 var (
 	validLevels = map[string]bool{
-		"info": true, "debug": true, "warning": true, "error": true,
+		InfoLevel: true, DebugLevel: true, WarningLevel: true, ErrorLevel: true,
 	}
 	validFormats = map[string]bool{
-		"text": true, "json": true,
+		TextFormat: true, JSONFormat: true,
 	}
 )
 
@@ -36,8 +50,6 @@ type LoggerFactory struct {
 	// Format as string, values are "text" or "json", by default "text" is used.
 	// when a terminal is not detected "json" is used instead.
 	Format string
-	// TimeFormat is used for marshaling timestamps
-	TimeFormat string
 	// Fields in JSON format to be used by configured in the new Logger.
 	Fields string
 	// ForceFormat if true the fact of being in a terminal or not is ignored.
@@ -47,11 +59,12 @@ type LoggerFactory struct {
 // New returns a new logger based on the LoggerFactory values.
 func (f *LoggerFactory) New() (Logger, error) {
 	l := logrus.New()
-	f.setHook(l)
 
 	if err := f.setLevel(l); err != nil {
 		return nil, err
 	}
+
+	f.setHook(l)
 
 	if err := f.setFormat(l); err != nil {
 		return nil, err
@@ -65,11 +78,10 @@ func (f *LoggerFactory) New() (Logger, error) {
 // logrus.
 func (f *LoggerFactory) ApplyToLogrus() error {
 	std := logrus.StandardLogger()
-	f.setHook(std)
-
 	if err := f.setLevel(std); err != nil {
 		return err
 	}
+	f.setHook(std)
 
 	return f.setFormat(std)
 }
@@ -110,15 +122,13 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 	}
 
 	switch f.Format {
-	case "text":
+	case TextFormat:
 		fmt := new(prefixed.TextFormatter)
 		fmt.ForceColors = true
 		fmt.FullTimestamp = true
-		fmt.TimestampFormat = f.TimeFormat
 		l.Formatter = fmt
-	case "json":
+	case JSONFormat:
 		fmt := new(logrus.JSONFormatter)
-		fmt.TimestampFormat = f.TimeFormat
 		l.Formatter = fmt
 	}
 
@@ -136,7 +146,7 @@ func (f *LoggerFactory) setDefaultFormat() error {
 	}
 
 	if !f.ForceFormat && isTerminal() {
-		f.Format = "json"
+		f.Format = JSONFormat
 	}
 
 	return fmt.Errorf(
@@ -146,7 +156,15 @@ func (f *LoggerFactory) setDefaultFormat() error {
 }
 
 func (f *LoggerFactory) setHook(l *logrus.Logger) {
-	l.AddHook(filename.NewHook(logrus.DebugLevel))
+	if f.Level == DebugLevel {
+		l.AddHook(filename.NewHook(
+			logrus.DebugLevel,
+			logrus.InfoLevel,
+			logrus.WarnLevel,
+			logrus.ErrorLevel,
+			logrus.PanicLevel),
+		)
+	}
 }
 
 func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {
