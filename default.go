@@ -26,7 +26,7 @@ func New(f Fields) Logger {
 	if DefaultFactory == nil {
 		DefaultFactory = &LoggerFactory{}
 		if flag.Lookup("test.v") != nil {
-			DefaultFactory.Level = "disabled"
+			DefaultFactory.Level = disabledLevel
 		}
 
 		if err := envconfig.Process("log", DefaultFactory); err != nil {

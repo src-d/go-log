@@ -40,6 +40,7 @@ const (
 var (
 	validLevels = map[string]bool{
 		InfoLevel: true, DebugLevel: true, WarningLevel: true, ErrorLevel: true,
+		disabledLevel: true,
 	}
 	validFormats = map[string]bool{
 		TextFormat: true, JSONFormat: true,
