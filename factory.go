@@ -23,6 +23,9 @@ const (
 	// ErrorLevel stands for error logging level.
 	ErrorLevel = "error"
 
+	// disabled is a special level used only when we are in test
+	disabledLevel = "panic"
+
 	// TextFormat stands for text logging format.
 	TextFormat = "text"
 	// JSONFormat stands for json logging format.
@@ -58,7 +61,7 @@ type LoggerFactory struct {
 }
 
 // New returns a new logger based on the LoggerFactory values.
-func (f *LoggerFactory) New() (Logger, error) {
+func (f *LoggerFactory) New(fields Fields) (Logger, error) {
 	l := logrus.New()
 
 	if err := f.setLevel(l); err != nil {
@@ -71,7 +74,7 @@ func (f *LoggerFactory) New() (Logger, error) {
 		return nil, err
 	}
 
-	return f.setFields(l)
+	return f.setFields(l, fields)
 }
 
 // ApplyToLogrus configures the standard logrus Logger with the LoggerFactory
@@ -170,15 +173,25 @@ func (f *LoggerFactory) setHook(l *logrus.Logger) {
 	}
 }
 
-func (f *LoggerFactory) setFields(l *logrus.Logger) (Logger, error) {
-	var fields logrus.Fields
+func (f *LoggerFactory) setFields(l *logrus.Logger, fields Fields) (Logger, error) {
+	var envFields logrus.Fields
 	if f.Fields != "" {
-		if err := json.Unmarshal([]byte(f.Fields), &fields); err != nil {
+		if err := json.Unmarshal([]byte(f.Fields), &envFields); err != nil {
 			return nil, err
 		}
 	}
 
-	e := l.WithFields(fields)
+	if envFields == nil {
+		envFields = make(logrus.Fields, 0)
+	}
+
+	if fields != nil {
+		for k, v := range fields {
+			envFields[k] = v
+		}
+	}
+
+	e := l.WithFields(envFields)
 	return &logger{*e}, nil
 }
 
