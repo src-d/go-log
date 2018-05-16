@@ -25,6 +25,8 @@ of available variables is:
 - `LOG_FIELDS`: Fields in JSON format to be included in all the loggers.
 - `LOG_FORCE_FORMAT`: If true the fact of being in a terminal or not is ignored.
 
+> By default the logging is disabled if go-log is being executed in tests.
+
 Usage
 -----
 
@@ -48,7 +50,7 @@ to have more control over it (for example for tests). A default `Logger`, can
 be instantiated using the `New` method.
 
 ```go
-logger, _ := log.New()
+logger := log.New(nil)
 logger.Infof("The answer to life, the universe and everything is %d", 42)
 // INFO The answer to life, the universe and everything is 42
 ```
@@ -57,11 +59,26 @@ Also, a new `Logger` can be created from other `Logger` in order to have
 contextual information, using the method `Logger.New`
 
 ```go
-logger, _ := log.New()
+logger := log.New(nil)
 
-bookLogger := logger.New(log.Field{"book": "Hitchhiker's Guide To The Galaxy"})
-bookLogger.Infof("The answer to life, the universe and everything is %d", 42)
-// INFO The answer to life, the universe and everything is 42 book=Hitchhiker's Guide To The Galaxy
+authorLogger := logger.New(log.Field{"author": "Douglas Adams"})
+bookLogger.Infof("The Hitchhiker's Guide to the Galaxy")
+bookLogger.Infof("Life, the Universe and Everything")
+// INFO The Hitchhiker's Guide to the Galaxy author=Douglas Adams
+// INFO Life, the Universe and Everything author=Douglas Adams
+```
+
+Or if you just want to add contextual information `Logger.New` to one log line
+you can use the `Logger.With` method.
+
+```go
+logger := log.New(nil)
+
+authorLogger := logger.New(log.Field{"author": "Douglas Adams"})
+bookLogger.With(log.Fields{"isbn": "0-330-25864-8"}).Infof("The Hitchhiker's Guide to the Galaxy")
+bookLogger.With(log.Fields{"isbn": "0-345-39182-9"}).Infof("Life, the Universe and Everything")
+// INFO The Hitchhiker's Guide to the Galaxy author=Douglas Adams isbn=0-330-25864-8
+// INFO Life, the Universe and Everything author=Douglas Adams isbn=0-345-39182-9
 ```
 
 ### Logging errors
