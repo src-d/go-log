@@ -10,8 +10,7 @@ type Logger interface {
 	// New returns a copy of the current logger, adding the given Fields.
 	New(Fields) Logger
 	// With returns a copy of the current logger, adding the given Fields.
-	// Alias of New, must be used with will be call chained with any message
-	// function.
+	// Alias of New, must be used when is chained with any message function.
 	With(Fields) Logger
 	// Debugf logs a message at level Debug.
 	Debugf(format string, args ...interface{})

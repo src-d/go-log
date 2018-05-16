@@ -42,6 +42,8 @@ func New(f Fields) Logger {
 	return l
 }
 
+// With returns a copy of the current logger, adding the given Fields. Alias of
+// New, must be used when is chained with any message function.
 func With(f Fields) Logger { return New(f) }
 
 // Debugf logs a message at level Debug.
