@@ -14,12 +14,21 @@ func TestNew(t *testing.T) {
 
 	os.Setenv("LOG_LEVEL", "DEBUG")
 
-	l, err := New()
-	require.NoError(err)
+	l := New(nil)
 
 	logger, ok := l.(*logger)
 	require.True(ok)
 	require.Equal(logrus.DebugLevel, logger.Entry.Logger.Level)
+}
+
+func TestWith(t *testing.T) {
+	require := require.New(t)
+
+	l := With(Fields{"foo": "bar"})
+
+	logger, ok := l.(*logger)
+	require.True(ok)
+	require.Equal(logrus.Fields{"foo": "bar"}, logger.Entry.Data)
 }
 
 func TestInfof_Lazy(t *testing.T) {
@@ -80,6 +89,11 @@ func NewMockLogger() *MockLogger {
 
 func (l *MockLogger) New(f Fields) Logger {
 	l.calledMethods["New"] = f
+	return nil
+}
+
+func (l *MockLogger) With(f Fields) Logger {
+	l.calledMethods["With"] = f
 	return nil
 }
 

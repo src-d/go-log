@@ -1,6 +1,8 @@
 package log
 
 import (
+	"flag"
+
 	"github.com/src-d/envconfig"
 )
 
@@ -18,17 +20,29 @@ var DefaultFactory *LoggerFactory
 // instantiated if nil once this functions are called.
 var DefaultLogger Logger
 
-// New returns a new logger using `DefaultFactory`.
-func New() (Logger, error) {
+// New returns a new logger using `DefaultFactory`, it panics if the environment
+// variables are missconfigurated.
+func New(f Fields) Logger {
 	if DefaultFactory == nil {
 		DefaultFactory = &LoggerFactory{}
+		if flag.Lookup("test.v") != nil {
+			DefaultFactory.Level = "disabled"
+		}
+
 		if err := envconfig.Process("log", DefaultFactory); err != nil {
-			return nil, err
+			panic(err)
 		}
 	}
 
-	return DefaultFactory.New()
+	l, err := DefaultFactory.New(f)
+	if err != nil {
+		panic(err)
+	}
+
+	return l
 }
+
+func With(f Fields) Logger { return New(f) }
 
 // Debugf logs a message at level Debug.
 func Debugf(format string, args ...interface{}) {
@@ -53,11 +67,7 @@ func Errorf(err error, format string, args ...interface{}) {
 
 func getLogger() Logger {
 	if DefaultLogger == nil {
-		var err error
-		DefaultLogger, err = New()
-		if err != nil {
-			panic(err)
-		}
+		DefaultLogger = New(nil)
 	}
 
 	return DefaultLogger
