@@ -62,3 +62,11 @@ func TestCaller(t *testing.T) {
 	require.Equal("go-log.v1/filename_test.go", file)
 	require.Equal(line, 61)
 }
+
+func TestCaller_IgnoreInternalCalls(t *testing.T) {
+	require := require.New(t)
+	hook := newFilenameHook(logrus.AllLevels...)
+
+	file, _ := hook.caller()
+	require.Equal(unknownFilename, file)
+}

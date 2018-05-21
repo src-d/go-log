@@ -15,6 +15,8 @@ import (
 // and prevents from going to deep on call stack.
 const maxStackFrames = 16
 
+const unknownFilename = "???"
+
 // filenameHook implements logrus.Hook interface
 type filenameHook struct {
 	field      string   // field is a name used in logging
@@ -66,7 +68,7 @@ func (hook *filenameHook) caller() (string, int) {
 		}
 	}
 
-	return "???", 0
+	return unknownFilename, 0
 }
 
 // basename returns file name and base directory e.g.:
