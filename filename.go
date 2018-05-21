@@ -11,8 +11,8 @@ import (
 )
 
 // maxStackFrames stands for maximum number of stack frames.
-// This const is used as a maximum number of stack frames to skip
-// and prevents from going to deep on call stack.
+// This const is used as a maximum number of stack frames to skip.
+// It prevents from going to deep on stack (due to performance reasons).
 const maxStackFrames = 16
 
 const unknownFilename = "???"
@@ -21,7 +21,7 @@ const unknownFilename = "???"
 type filenameHook struct {
 	field      string   // field is a name used in logging
 	skipframes int      // skipframes is used to skip number of stack frames.
-	skipnames  []string // skipnames is a slice of names to skip.
+	skipnames  []string // skipnames contains stack frames prefixes to skip.
 	levels     []logrus.Level
 	formatter  func(file string, line int) string
 }
@@ -36,6 +36,11 @@ func (hook *filenameHook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
+// newFilenameHook creates a new default filename hook.
+// By default:
+// -  skips 5 stack frames,
+// - ignore internal calls for logrus and go-log
+// - logging in following format "source={file}:{line}"
 func newFilenameHook(levels ...logrus.Level) *filenameHook {
 	hook := filenameHook{
 		field:      "source",
