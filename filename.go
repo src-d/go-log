@@ -73,10 +73,18 @@ func (hook *filenameHook) caller() (string, int) {
 // for path "gopkg.in/src-d/go-log.v1/logger.go"
 // function returns "go-log.v1/logger.go"
 func basename(path string) string {
-	i, vol := len(path)-1, filepath.VolumeName(path)
-	for ; i >= len(vol) && !os.IsPathSeparator(path[i]); i-- {
-	}
-	for i--; i >= len(vol) && !os.IsPathSeparator(path[i]); i-- {
+	i, n := len(path)-1, 2
+	vollen := len(filepath.VolumeName(path))
+
+	for i >= vollen {
+		if os.IsPathSeparator(path[i]) {
+			n--
+			if n == 0 {
+				break
+			}
+		}
+
+		i--
 	}
 
 	return path[i+1:]
