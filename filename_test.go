@@ -58,9 +58,8 @@ func TestCaller(t *testing.T) {
 		},
 	}
 
-	file, line := hook.caller()
+	file, _ := hook.caller()
 	require.Equal("go-log.v1/filename_test.go", file)
-	require.Equal(line, 61)
 }
 
 func TestCaller_IgnoreInternalCalls(t *testing.T) {
