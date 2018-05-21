@@ -1,7 +1,10 @@
 package log
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/stretchr/testify/require"
 )
@@ -40,4 +43,22 @@ func TestHasPrefix(t *testing.T) {
 		file := basename(k)
 		require.Equalf(v.ok, hasPrefix(file, v.prefix...), "path: %v, basename: %v", k, file)
 	}
+}
+
+func TestCaller(t *testing.T) {
+	require := require.New(t)
+
+	hook := &filenameHook{
+		field:      "source",
+		skipframes: 1,
+		skipnames:  []string{"logrus"},
+		levels:     logrus.AllLevels,
+		formatter: func(file string, line int) string {
+			return fmt.Sprintf("%s:%d", file, line)
+		},
+	}
+
+	file, line := hook.caller()
+	require.Equal("go-log.v1/filename_test.go", file)
+	require.Equal(line, 61)
 }
