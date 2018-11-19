@@ -116,3 +116,8 @@ func (l *MockLogger) Errorf(err error, format string, args ...interface{}) {
 	l.calledMethods["Errorf"] = format
 
 }
+
+func (l *MockLogger) Fields() Fields {
+	l.calledMethods["Fields"] = true
+	return nil
+}

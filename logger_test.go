@@ -42,6 +42,7 @@ func TestLogger_With(t *testing.T) {
 	l1, ok := l.(*logger)
 	require.True(ok)
 	require.Equal(logrus.Fields{"foo": "qux"}, l1.Entry.Data)
+	require.Equal(Fields{"foo": "qux"}, l1.Fields())
 }
 
 func TestLogger_Errorf(t *testing.T) {

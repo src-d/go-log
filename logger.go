@@ -20,6 +20,8 @@ type Logger interface {
 	Warningf(format string, args ...interface{})
 	// Errorf logs an error with a message at level Error.
 	Errorf(err error, format string, args ...interface{})
+	// Fields returns the logger Fields
+	Fields() Fields
 }
 
 type logger struct {
@@ -35,4 +37,8 @@ func (l *logger) With(f Fields) Logger { return l.New(f) }
 
 func (l *logger) Errorf(err error, format string, args ...interface{}) {
 	l.WithError(err).Errorf(format, args...)
+}
+
+func (l *logger) Fields() Fields {
+	return Fields(l.Data)
 }
