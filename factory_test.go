@@ -1,6 +1,8 @@
 package log
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -31,6 +33,32 @@ func TestLoggerFactoryNew_JSON(t *testing.T) {
 	require.True(ok)
 	require.IsType(&logrus.JSONFormatter{}, logger.Entry.Logger.Formatter)
 	require.Equal(logrus.InfoLevel, logger.Entry.Logger.Level)
+}
+
+func TestLoggerFactoryNew_fluentd(t *testing.T) {
+	require := require.New(t)
+
+	f := &LoggerFactory{Format: FluentdFormat, Level: InfoLevel}
+	l, err := f.New(nil)
+	require.NoError(err)
+
+	logger, ok := l.(*logger)
+	require.True(ok)
+
+	buf := &bytes.Buffer{}
+	logger.Entry.Logger.Out = buf
+	logger.Warn("something")
+
+	var data map[string]interface{}
+	json.Unmarshal(buf.Bytes(), &data)
+
+	message, ok := data["message"]
+	require.True(ok)
+	require.Equal("something", message)
+
+	severity, ok := data["severity"]
+	require.True(ok)
+	require.Equal("warning", severity)
 }
 
 func TestLoggerFactoryNew_NewFields(t *testing.T) {
