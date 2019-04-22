@@ -29,6 +29,8 @@ const (
 	TextFormat = "text"
 	// JSONFormat stands for json logging format.
 	JSONFormat = "json"
+	// FluentdFormat stands for fluentd that can be parsed by Kubernetes and Google Container Engine.
+	FluentdFormat = "fluentd"
 
 	// DefaultLevel is the level used by LoggerFactory when Level is omitted.
 	DefaultLevel = InfoLevel
@@ -42,7 +44,7 @@ var (
 		disabledLevel: true,
 	}
 	validFormats = map[string]bool{
-		TextFormat: true, JSONFormat: true,
+		TextFormat: true, JSONFormat: true, FluentdFormat: true,
 	}
 )
 
@@ -51,10 +53,10 @@ var (
 type LoggerFactory struct {
 	// Level as string, values are "info", "debug", "warning" or "error".
 	Level string
-	// Format as string, values are "text" or "json", by default "text" is used.
+	// Format as string, values are "text", "json" or "fluentnd", by default "text" is used.
 	// when a terminal is not detected "json" is used instead.
 	Format string
-	// Fields in JSON format to be used by configured in the new Logger.
+	// Fields in JSON or fluentd format to be used by configured in the new Logger.
 	Fields string
 	// ForceFormat if true the fact of being in a terminal or not is ignored.
 	ForceFormat bool
@@ -135,6 +137,14 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 	case "json":
 		f := new(logrus.JSONFormatter)
 		f.TimestampFormat = time.RFC3339Nano
+		l.Formatter = f
+	case "fluentd":
+		f := new(logrus.JSONFormatter)
+		f.FieldMap = logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "severity",
+			logrus.FieldKeyMsg:   "message",
+		}
 		l.Formatter = f
 	}
 
