@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -128,7 +129,7 @@ func (f *LoggerFactory) setFormat(l *logrus.Logger) error {
 	switch f.Format {
 	case "text":
 		f := new(prefixed.TextFormatter)
-		f.ForceColors = true
+		f.ForceColors = runtime.GOOS != "windows"
 		f.FullTimestamp = true
 		f.TimestampFormat = time.RFC3339Nano
 		l.Formatter = f
