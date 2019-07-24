@@ -20,11 +20,16 @@ var DefaultFactory *LoggerFactory
 // instantiated if nil once this functions are called.
 var DefaultLogger Logger
 
+// SetDefaultFactory customizes default factory with LoggerFactory's fields
+func SetDefaultFactory(lf *LoggerFactory) {
+	DefaultFactory = lf
+}
+
 // New returns a new logger using `DefaultFactory`, it panics if the environment
 // variables are missconfigurated.
 func New(f Fields) Logger {
 	if DefaultFactory == nil {
-		DefaultFactory = &LoggerFactory{}
+		SetDefaultFactory(&LoggerFactory{})
 		if flag.Lookup("test.v") != nil {
 			DefaultFactory.Level = disabledLevel
 		}
