@@ -23,12 +23,12 @@ type Logger interface {
 }
 
 type logger struct {
-	logrus.Entry
+	*logrus.Entry
 }
 
 func (l *logger) New(f Fields) Logger {
 	e := l.WithFields(logrus.Fields(f))
-	return &logger{*e}
+	return &logger{e}
 }
 
 func (l *logger) With(f Fields) Logger { return l.New(f) }

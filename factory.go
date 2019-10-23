@@ -203,7 +203,7 @@ func (f *LoggerFactory) setFields(l *logrus.Logger, fields Fields) (Logger, erro
 	}
 
 	e := l.WithFields(envFields)
-	return &logger{*e}, nil
+	return &logger{e}, nil
 }
 
 func getKeysFromMap(m map[string]bool) []string {
